@@ -3,7 +3,8 @@ CXXFLAGS = -Wall -Werror -Wextra -g -std=c++98 -I .
 NAME = jsonReader
 SRC_DIR = ./
 SRCS = $(SRC_DIR)main.cpp \
-	$(SRC_DIR)JSONReader.cpp
+	$(SRC_DIR)JSONReader.cpp \
+	$(SRC_DIR)JSONUtils.cpp
 
 OBJ_DIR = .build/
 OBJS = $(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
