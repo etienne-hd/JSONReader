@@ -3,8 +3,8 @@
 **a C++ 98 JSON Reader**
 
 ## Todo
-- [] Check if data is a valid JSON
-- [] Custom exception (std::runtime_error 🙏)
+- [ ] Check if data is a valid JSON
+- [ ] Custom exception (std::runtime_error 🙏)
 
 ## Usage
 
