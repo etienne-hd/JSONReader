@@ -11,8 +11,8 @@ JSONReader::JSONReader(std::string content, std::string content_base) {
 }
 
 JSONReader::JSONReader(std::string content) {
-	//if (!JSONReader::isValidJSON(content))
-	//	throw std::runtime_error("Invalid JSON file");
+	if (!JSONReader::isValidJSON(content))
+		throw std::runtime_error("Invalid JSON file");
 
 	for (std::string::iterator it = content.begin(); it != content.end(); it++) {
 		if ((*it >= 8 && *it <= 13) || *it == ' ' || *it == '\n')
@@ -22,10 +22,6 @@ JSONReader::JSONReader(std::string content) {
 	_content = content;
 	_base_content = content;
 }
-
-//bool JSONReader::isValidJSON(std::string content) {
-//	...
-//}
 
 JSONReader JSONReader::getValue(std::string::iterator &it) {
 	std::string value;
@@ -117,7 +113,7 @@ std::vector<JSONReader> JSONReader::values(int n) {
 	std::string::iterator it = _content.begin() + 1;
 	
 	int currentIndex = 0;
-	while (it != _content.end() && (currentIndex < n || n == -1)) {
+	while (it < _content.end() - 1 && (currentIndex < n || n == -1)) {
 		JSONReader currentValue = this->getValue(it);
 		it++; // skip ','
 
@@ -198,4 +194,8 @@ bool JSONReader::isNumber(void) const {
 
 bool JSONReader::isString(void) const {
 	return (*_content.begin() == '"');
+}
+
+unsigned int JSONReader::length(void) {
+	return (this->values().size());
 }

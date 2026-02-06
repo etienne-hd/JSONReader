@@ -36,7 +36,7 @@ class JSONReader {
 		bool isDict(void) const;
 		bool isNumber(void) const;
 		bool isString(void) const;
-		unsigned int length(void) const;
+		unsigned int length(void);
 };
 
 #endif
