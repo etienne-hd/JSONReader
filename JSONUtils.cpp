@@ -6,21 +6,17 @@
 /*   By: ehode <ehode@student.42angouleme.fr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/06 17:20:36 by ehode             #+#    #+#             */
-/*   Updated: 2026/02/06 20:02:40 by ehode            ###   ########.fr       */
+/*   Updated: 2026/02/06 20:45:44 by ehode            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "JSONReader.hpp"
-#include <cctype>
 #include <stdexcept>
 #include <string>
-#include <iostream>
 
 static std::string::iterator checker(std::string::iterator begin, std::string::iterator end) {
-	std::cout << "input_value ->" << std::string(begin, end) << std::endl;
 	std::string::iterator it = begin;
 	bool isDict = false;
-	std::cout << "begin: " << *it << std::endl;
 	if (*it == '{' || *it == '[')
 	{
 		isDict = *it == '{';
@@ -36,7 +32,6 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 		// key (must start with ")
 		if (isDict) {
 			bool inScope = false;
-			std::cout << "key begin: " << *it << std::endl;
 			if (*it != '"')
 				throw std::runtime_error("Invalid token: key must start by \"");
 			std::string key;
@@ -49,7 +44,6 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 				if (inScope == false)
 					break;
 			}
-			std::cout << "key: " << key << std::endl;
 
 			// next token is :
 			if (*it != ':')
@@ -64,7 +58,6 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 		{
 			std::string::iterator endValue = checker(it, end);
 			value = std::string(it, endValue);
-			std::cout << "output_value -> " << value << std::endl;
 			it = endValue;
 		// String
 		} else if (*it == '"') {
@@ -90,7 +83,6 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 			if (dotCount > 1)
 				throw std::runtime_error("Invalid number");
 		}
-		std::cout << "value: " << value << std::endl;
 
 		// next token is , }, ]
 		if (*it == ',' || *it == '}' || *it == ']') {
@@ -98,7 +90,6 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 				it++;
 		} else
 			throw std::runtime_error("Invalid token: expecting [, }, ]] after value");
-		std::cout << "end token: " << *it << std::endl;
 	}
 	return (it);
 }
@@ -124,7 +115,7 @@ bool JSONReader::isValidJSON(std::string content) {
 		else if (inScope == false && (*it == '}' || *it == ']'))
 			depth[*it == '}']--;
 		else if (inScope == false && allowedOutScope.find(*it) == std::string::npos) {
-			std::cerr << "Invalid character have been found: " << *it << std::endl;
+			throw std::runtime_error(std::string("Invalid character have been found: ") + *it);
 			return (false);
 		}
 		if (depth[0] < 0 || depth[1] < 0)
