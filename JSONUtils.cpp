@@ -6,13 +6,15 @@
 /*   By: ehode <ehode@student.42angouleme.fr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/06 17:20:36 by ehode             #+#    #+#             */
-/*   Updated: 2026/02/06 20:45:44 by ehode            ###   ########.fr       */
+/*   Updated: 2026/02/07 02:21:54 by ehode            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "JSONReader.hpp"
+
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
 static std::string::iterator checker(std::string::iterator begin, std::string::iterator end) {
 	std::string::iterator it = begin;
@@ -23,7 +25,7 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 		it++;
 	}
 	else
-		throw std::runtime_error("Invalid checker begin");
+		throw std::runtime_error("Invalid begin");
 	
 	for (; it != end; ) {
 		if ((*it == '}' || *it == ']'))
@@ -71,59 +73,59 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 				if (inScope == false)
 					break;
 			}
-		} else if (std::isdigit(*it)) {
-			int dotCount = 0;
-			while (std::isdigit(*it) || *it == '.')
+		// Number
+		} else if (std::isdigit(*it) || *it == '-') {
+			if (*it == '-')
 			{
-				if (*it == '.')
-					dotCount++;
 				value += *it;
 				it++;
 			}
-			if (dotCount > 1)
-				throw std::runtime_error("Invalid number");
+			int count = 0;
+			while (std::isdigit(*it) || *it == '.')
+			{
+				if (*it == '.')
+					count++;
+				if (*it == '.' && !(std::isdigit(*(it - 1)) && std::isdigit(*(it + 1))))
+					throw std::runtime_error("Invalid Number: invalid dot position");
+				value += *it;
+				it++;
+			}
+			if (count > 1)
+				throw std::runtime_error("Invalid number: too many dot");
+		// Bool
+		} else if (std::strncmp("false", std::string(it, end).c_str(), 5) == 0 ||
+			std::strncmp("true", std::string(it, end).c_str(), 4) == 0) {
+			value = std::strncmp("false", std::string(it, end).c_str(), 5) == 0 ? "false" : "true";
+			it += value.length();
+		} else if (std::strncmp("null", std::string(it, end).c_str(), 4) == 0) {
+			value = "null";
+			it += value.length();
+		} else {
+			throw std::runtime_error("Invalid value");
 		}
-
+		
 		// next token is , }, ]
 		if (*it == ',' || *it == '}' || *it == ']') {
 			if (*it == ',')
 				it++;
 		} else
-			throw std::runtime_error("Invalid token: expecting [, }, ]] after value");
+			throw std::runtime_error("Invalid token: expecting [',', '}', ']'] after value");
 	}
 	return (it);
 }
 
-bool JSONReader::isValidJSON(std::string content) {
-	const std::string allowedOutScope = "{}[],:0123456789.";
-
-	for (std::string::iterator it = content.begin(); it != content.end(); it++) {
-		if ((*it >= 8 && *it <= 13) || *it == ' ' || *it == '\n')
-			content.erase(it--);
-	}
-	// begin / end checker ({} [])
-	if (!((*content.begin() == '{' && *(content.end() - 1) == '}') ||
-		(*content.begin() == '[' && *(content.end() - 1) == ']')))
-		return (false);
+bool JSONReader::isValidJSON(std::string data) {
 	bool inScope = false;
-	int depth[2] = {};
-	for (std::string::iterator it = content.begin(); it != content.end(); it++) {
+	for (std::string::iterator it = data.begin(); it != data.end(); it++) {
 		if (*it == '"' && *(it - 1) != '\\')
 			inScope = !inScope;
-		else if (inScope == false && (*it == '{' || *it == '['))
-			depth[*it == '{']++;
-		else if (inScope == false && (*it == '}' || *it == ']'))
-			depth[*it == '}']--;
-		else if (inScope == false && allowedOutScope.find(*it) == std::string::npos) {
-			throw std::runtime_error(std::string("Invalid character have been found: ") + *it);
-			return (false);
-		}
-		if (depth[0] < 0 || depth[1] < 0)
-			return (false);
+		else if (inScope == false && ((*it >= 8 && *it <= 13) || *it == ' ' || *it == '\n'))
+			data.erase(it--);
 	}
-	if (inScope == true || depth[0] != 0 || depth[0] != 0)
-		return (false);
-	if (checker(content.begin(), content.end()) != content.end()) {
+	try {
+		if (checker(data.begin(), data.end()) != data.end())
+			return (false);
+	} catch (std::exception &e) {
 		return (false);
 	}
 	return (true);

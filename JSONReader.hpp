@@ -6,17 +6,17 @@
 
 class JSONReader {
 	private:
-		std::string		_content;
-		std::string		_base_content;
+		std::string		_data;
+		std::string		_base_data;
 		unsigned int	_length;
 
 		JSONReader getValue(std::string::iterator &it);
 		std::string getKey(std::string::iterator &it);
-		JSONReader(std::string content, std::string base_content);
+		JSONReader(std::string data, std::string base_data);
 	public:
-		JSONReader(std::string content);
+		JSONReader(std::string data);
 
-		static bool isValidJSON(std::string content);
+		static bool isValidJSON(std::string data);
 		
 		JSONReader get(std::string key);
 		JSONReader get(int index);
@@ -31,11 +31,14 @@ class JSONReader {
 		long long toLongLong(void) const;
 		float toFloat(void) const;
 		double toDouble(void) const;
+		bool toBool(void) const;
 		
 		bool isArray(void) const;
 		bool isDict(void) const;
 		bool isNumber(void) const;
 		bool isString(void) const;
+		bool isBool(void) const;
+		bool isNull(void) const;
 		unsigned int length(void);
 };
 

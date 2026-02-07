@@ -1,5 +1,6 @@
 #include "JSONReader.hpp"
 
+#include <exception>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -13,29 +14,63 @@ std::string readFile(const std::string fileName) {
 	return (content);
 }
 
+void print_value(JSONReader &value) {
+	if (value.isNumber())
+		std::cerr << value.toDouble();
+	else if (value.isBool()) {
+		if (value.toBool())
+			std::cerr << "true";
+		else
+			std::cerr << "false";
+	} else if (value.isNull())
+		std::cerr << "null";
+	else
+		std::cerr << "\"" << value.toString() << "\"";
+}
+
+void print_json(JSONReader &reader, int depth = 0) {
+	if (reader.isDict()) {
+		std::cerr << "{";
+		std::vector<std::string> keys = reader.keys();
+		for (std::vector<std::string>::iterator key = keys.begin(); key != keys.end(); key++) {
+			std::cerr << "\"" << *key << "\":";
+			JSONReader value = reader[*key];
+			if (value.isArray() || value.isDict())
+				print_json(value, depth + 1);
+			else
+				print_value(value);
+			if (key != keys.end() - 1)
+				std::cerr << ",";
+		}
+		std::cerr << "}";
+	} else if (reader.isArray()) {
+		std::cerr << "[";
+		std::vector<JSONReader> values = reader.values();
+		for (std::vector<JSONReader>::iterator value = values.begin(); value != values.end(); value++) {
+			if (value->isArray() || value->isDict())
+				print_json(*value, depth + 1);
+			else
+				print_value(*value);
+			if (value != values.end() - 1)
+				std::cerr << ",";
+		}
+		std::cerr << "]";
+	}
+	else {
+		std::cerr << "Invalid type" << std::endl;
+	}
+	if (depth == 0)
+		std::cerr << std::endl;
+}
+
 int	main(void) {
 	std::string content = readFile("example.json");
-	JSONReader jsonReader(content);
+	try{
+		JSONReader reader(content);
 
-	std::cout << jsonReader["e"]["g"]["h"].toString() << std::endl;
-	std::cout << jsonReader["c"][1].toString() << std::endl;
-	std::cout << jsonReader.get("b").get(1).toInt() << std::endl;
-	std::cout << jsonReader["e"].get("i").toDouble() << std::endl;
-
-	std::cout << "Getting all values of json[\"c\"]" << std::endl;
-	std::vector<JSONReader> values = jsonReader["b"].values();
-	for (std::vector<JSONReader>::iterator it = values.begin(); it != values.end(); it++) {
-		try {
-			std::cout << it->toInt() << std::endl;
-		} catch (...) {
-			std::cerr << "Cannot convert to int" << std::endl;
-		}
-	}
-
-	std::cout << "Getting all keys of json" << std::endl;
-	std::vector<std::string> keys = jsonReader.keys();
-	for (std::vector<std::string>::iterator it = keys.begin(); it != keys.end(); it++) {
-		std::cout << *it << std::endl;
+		print_json(reader);
+	} catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
 	}
 	return (0);
 }
