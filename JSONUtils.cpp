@@ -6,7 +6,7 @@
 /*   By: ehode <ehode@student.42angouleme.fr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/06 17:20:36 by ehode             #+#    #+#             */
-/*   Updated: 2026/02/07 02:21:54 by ehode            ###   ########.fr       */
+/*   Updated: 2026/02/07 13:11:24 by ehode            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,11 @@ static std::string::iterator checker(std::string::iterator begin, std::string::i
 		throw std::runtime_error("Invalid begin");
 	
 	for (; it != end; ) {
-		if ((*it == '}' || *it == ']'))
-			return (it + 1);
+		if ((*it == '}' || *it == ']')) {
+			if ((*it == '}' && isDict) || (*it == ']' && !isDict))
+				return (it + 1);
+			throw std::runtime_error("Invalid close");
+		}
 
 		// key (must start with ")
 		if (isDict) {
