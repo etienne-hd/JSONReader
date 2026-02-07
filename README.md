@@ -2,10 +2,6 @@
 
 **a C++ 98 JSON Reader**
 
-## Todo
-- [x] Check if data is a valid JSON
-- [ ] Custom exception (std::runtime_error 🙏)
-
 ## Usage
 
 Example of `json` data:
