@@ -8,7 +8,6 @@ class JSONReader {
 	private:
 		std::string		_data;
 		std::string		_base_data;
-		unsigned int	_length;
 
 		JSONReader getValue(std::string::iterator &it);
 		std::string getKey(std::string::iterator &it);
