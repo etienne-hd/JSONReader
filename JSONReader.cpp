@@ -1,6 +1,5 @@
 #include "JSONReader.hpp"
 
-#include <stdexcept>
 #include <string>
 #include <cstdlib>
 #include <vector>
@@ -12,7 +11,7 @@ JSONReader::JSONReader(std::string content, std::string content_base) {
 
 JSONReader::JSONReader(std::string data) {
 	if (!JSONReader::isValidJSON(data))
-		throw std::runtime_error("Invalid JSON data");
+		throw JSONReader::InvalidJSON();
 
 	bool inScope = false;
 	for (std::string::iterator it = data.begin(); it != data.end(); it++) {
@@ -77,7 +76,7 @@ std::string JSONReader::getKey(std::string::iterator &it) {
 
 JSONReader JSONReader::get(std::string key) {
 	if (!(*_data.begin() == '{' && *(_data.end() - 1) == '}'))
-		throw std::runtime_error("Invalid Content");
+		throw JSONReader::NotADict();
 
 	std::string::iterator it = _data.begin() + 1;
 
@@ -91,14 +90,18 @@ JSONReader JSONReader::get(std::string key) {
 		if (key == currentKey)
 			return (currentValue);
 	}
-	throw std::runtime_error("Unable to find key");
+	throw JSONReader::KeyNotFound();
 }
 
-JSONReader JSONReader::get(int index) {
-	return(this->values(index + 1)[index]);
+JSONReader JSONReader::get(unsigned int index) {
+	std::vector<JSONReader> values = this->values(index + 1);
+	if (values.size() > index) {
+		return (values[index]);
+	}
+	throw JSONReader::OutOfRange();
 }
 
-JSONReader JSONReader::operator[](int index) {
+JSONReader JSONReader::operator[](unsigned int index) {
 	return(this->get(index));
 }
 
@@ -109,8 +112,8 @@ JSONReader JSONReader::operator[](std::string key) {
 std::vector<JSONReader> JSONReader::values(int n) {
 	std::vector<JSONReader> values;
 
-	if (!(*_data.begin() == '[' && *(_data.end() - 1) == ']'))
-		throw std::runtime_error("JSONReader::values is reserved for arrays.");
+	if (!this->isArray())
+		throw JSONReader::NotAnArray();
 
 	std::string::iterator it = _data.begin() + 1;
 	
@@ -128,8 +131,8 @@ std::vector<JSONReader> JSONReader::values(int n) {
 std::vector<std::string> JSONReader::keys(void) {
 	std::vector<std::string> keys;
 
-	if (!(*_data.begin() == '{' && *(_data.end() - 1) == '}'))
-		throw std::runtime_error("JSONReader::values is reserved for arrays.");
+	if (!this->isDict())
+		throw JSONReader::NotADict();
 
 	std::string::iterator it = _data.begin() + 1;
 
@@ -147,44 +150,44 @@ std::vector<std::string> JSONReader::keys(void) {
 }
 
 std::string JSONReader::toString(void) const {
-	if (*_data.begin() != '"')
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isString())
+		throw JSONReader::InvalidConversion();
 	return std::string(_data.begin() + 1, _data.end() - 1);
 }
 
 int JSONReader::toInt(void) const {
-	if (!(std::isdigit(*_data.begin()) || *_data.begin() == '-'))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isNumber())
+		throw JSONReader::InvalidConversion();
 	return (std::atoi(_data.c_str()));
 }
 
 long JSONReader::toLong(void) const {
-	if (!(std::isdigit(*_data.begin()) || *_data.begin() == '-'))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isNumber())
+		throw JSONReader::InvalidConversion();
 	return (std::atol(_data.c_str()));
 }
 
 long long JSONReader::toLongLong(void) const {
-	if (!(std::isdigit(*_data.begin()) || *_data.begin() == '-'))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isNumber())
+		throw JSONReader::InvalidConversion();
 	return (std::atoll(_data.c_str()));
 }
 
 float JSONReader::toFloat(void) const {
-	if (!(std::isdigit(*_data.begin()) || *_data.begin() == '-'))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isNumber())
+		throw JSONReader::InvalidConversion();
 	return (std::atof(_data.c_str()));
 }
 
 double JSONReader::toDouble(void) const {
-	if (!(std::isdigit(*_data.begin()) || *_data.begin() == '-'))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isNumber())
+		throw JSONReader::InvalidConversion();
 	return (std::strtod(_data.c_str(), __null));
 }
 
 bool JSONReader::toBool(void) const {
-	if (!(_data == "true" || _data == "false"))
-		throw std::runtime_error("Invalid conversion");
+	if (!this->isBool())
+		throw JSONReader::InvalidConversion();
 	return (_data == "true");
 }
 
@@ -212,7 +215,25 @@ bool JSONReader::isNull(void) const {
 	return (_data == "null");
 }
 
-
 unsigned int JSONReader::length(void) {
 	return (this->values().size());
+}
+
+const char *JSONReader::InvalidJSON::what(void) const throw() {
+	return ("Provided JSON is invalid.");
+}
+const char *JSONReader::InvalidConversion::what(void) const throw() {
+	return ("Can't convert data to this type.");
+}
+const char *JSONReader::NotADict::what(void) const throw() {
+	return ("Not a dict.");
+}
+const char *JSONReader::NotAnArray::what(void) const throw() {
+	return ("Not an array.");
+}
+const char *JSONReader::KeyNotFound::what(void) const throw() {
+	return ("Key not found.");
+}
+const char *JSONReader::OutOfRange::what(void) const throw() {
+	return ("Index out of range.");
 }
