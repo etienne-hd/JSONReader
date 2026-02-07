@@ -191,6 +191,10 @@ bool JSONReader::toBool(void) const {
 	return (_data == "true");
 }
 
+std::string JSONReader::raw(void) const {
+	return (_data);
+}
+
 bool JSONReader::isArray(void) const {
 	return (*_data.begin() == '[');
 }
@@ -236,4 +240,9 @@ const char *JSONReader::KeyNotFound::what(void) const throw() {
 }
 const char *JSONReader::OutOfRange::what(void) const throw() {
 	return ("Index out of range.");
+}
+
+std::ostream &operator<<(std::ostream &stream, JSONReader reader) {
+	stream << reader.raw();
+	return (stream);
 }

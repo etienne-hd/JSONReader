@@ -2,6 +2,7 @@
 # define JSON_HPP
 
 # include <exception>
+# include <ostream>
 # include <string>
 # include <vector>
 
@@ -12,9 +13,9 @@ class JSONReader {
 
 		JSONReader getValue(std::string::iterator &it);
 		std::string getKey(std::string::iterator &it);
-		JSONReader(std::string data, std::string base_data);
+		explicit JSONReader(std::string data, std::string base_data);
 	public:
-		JSONReader(std::string data);
+		explicit JSONReader(std::string data);
 
 		static bool isValidJSON(std::string data);
 		
@@ -32,6 +33,8 @@ class JSONReader {
 		float toFloat(void) const;
 		double toDouble(void) const;
 		bool toBool(void) const;
+
+		std::string raw(void) const;
 		
 		bool isArray(void) const;
 		bool isDict(void) const;
@@ -61,5 +64,7 @@ class JSONReader {
 			virtual const char *what(void) const throw();
 		};
 };
+
+std::ostream &operator<<(std::ostream &stream, JSONReader reader);
 
 #endif

@@ -68,7 +68,7 @@ int	main(void) {
 	try{
 		JSONReader reader(content);
 
-		print_json(reader);
+		std::cout << reader["e"]["g"] << std::endl;
 	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;
 	}
